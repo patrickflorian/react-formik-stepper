@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Field, Form, Formik } from "formik";
-import { Box, Grid, TextField } from "@material-ui/core";
-import { FormikTextInput } from "./TextInput";
-import { CheckboxWithLabel } from "formik-material-ui";
-import { CheckBox } from "./CheckBox";
+import React, {  } from "react";
+import { Field } from "formik";
+import { Box, Grid } from "@material-ui/core";
+import { FormikTextInput, FormikPhoneInput } from "./TextInput";
 
 const AboutForm = (props) => {
  
  const {isCompany}  = props
-  return isCompany ? (
+  return <div className={'col-md-7'}>
+    {
+      isCompany ? (
     <Box
       paddingBottom={2}
       alignItems={"center"}
@@ -28,17 +28,18 @@ const AboutForm = (props) => {
             />
           </Box>
         </Grid>
-        <Grid item md={12} xs={12} sm={12}>
+        
+        <Grid item xs={12} sm={12} md={12}>
           <Box paddingBottom={2}>
             <Field
-              fullWidth
-              name="lastName"
+              name="activity"
+              type="text"
               component={FormikTextInput}
-              label="Last Name"
+              label="Domaine d'activité"
             />
           </Box>
         </Grid>
-        <Grid item md={12}>
+        <Grid item xs={12} sm={12} md={6}>
           <Box paddingBottom={2}>
             <Field
               name="email"
@@ -48,23 +49,13 @@ const AboutForm = (props) => {
             />
           </Box>
         </Grid>
-        <Grid item md={12}>
+        <Grid item xs={12} sm={12} md={6}>
           <Box paddingBottom={2}>
             <Field
               name="phonenumber"
               type="text"
-              component={FormikTextInput}
+              component={FormikPhoneInput}
               label="Numero de telephone"
-            />
-          </Box>
-        </Grid>
-        <Grid item md={12}>
-          <Box paddingBottom={2}>
-            <Field
-              name="phonenumber"
-              type="text"
-              component={FormikTextInput}
-              label="Domaine d'activité"
             />
           </Box>
         </Grid>
@@ -76,6 +67,7 @@ const AboutForm = (props) => {
       alignItems={"center"}
       justifyContent={"center"}
       display={"flex"}
+      
     >
       <Grid container>
         <Grid item xs={12} sm={12} md={12}>
@@ -99,27 +91,7 @@ const AboutForm = (props) => {
             />
           </Box>
         </Grid>
-        <Grid item md={12}>
-          <Box paddingBottom={2}>
-            <Field
-              name="email"
-              type="text"
-              component={FormikTextInput}
-              label="Email"
-            />
-          </Box>
-        </Grid>
-        <Grid item md={12}>
-          <Box paddingBottom={2}>
-            <Field
-              name="phonenumber"
-              type="text"
-              component={FormikTextInput}
-              label="Numero de telephone"
-            />
-          </Box>
-        </Grid>
-        <Grid item md={12}>
+        <Grid item xs={12} sm={12} md={12}>
           <Box paddingBottom={2}>
             <Field
               name="job"
@@ -129,9 +101,31 @@ const AboutForm = (props) => {
             />
           </Box>
         </Grid>
+        <Grid item xs={12} sm={12} md={6}>
+          <Box paddingBottom={2}>
+            <Field
+              name="email"
+              type="text"
+              component={FormikTextInput}
+              label="Email"
+            />
+          </Box>
+        </Grid>
+        <Grid item xs={12} sm={12} md={6}>
+          <Box paddingBottom={2}>
+            <Field
+              name="phonenumber"
+              type="text"
+              component={FormikPhoneInput}
+              label="Numero de telephone"
+            />
+          </Box>
+        </Grid>
       </Grid>
     </Box>
-  );
+  )
+    }
+  </div>
 };
 
 export default AboutForm;

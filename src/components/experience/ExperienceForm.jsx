@@ -1,10 +1,10 @@
 import { Box, Divider, Grid } from '@material-ui/core';
 import { Field } from 'formik';
 import React, { useEffect, useState } from 'react';
-import { TextInput } from '../TextInput';
+import { TextInput, FormikDateInput } from '../TextInput';
 
 export function ExperienceForm(props){
-  const  { added , remove, index, onUpdate, } = props;
+  const  { added , remove, index, onUpdate,form , errors,touched} = props;
   const initialValues = (localStorage.getItem("experiences"))? JSON.parse(localStorage.getItem("experiences"))[index] : null;
   const [value, setValue] = useState(initialValues?initialValues:{
     position :'',
@@ -21,10 +21,10 @@ export function ExperienceForm(props){
     setValue(newValue)
     onUpdate(index,value);
   }
+    console.log(touched)
 
   useEffect(()=>{
-    
-  }, [])
+  }, [value])
 
     return <> <Box
     paddingBottom={2}
@@ -42,6 +42,7 @@ export function ExperienceForm(props){
             label="Poste occupé"
             onChange={onInputChange}
             value={value.position}
+            error={touched && touched.position &&errors && errors.position &&errors.position}
           />
         </Box>
       </Grid>
@@ -53,28 +54,31 @@ export function ExperienceForm(props){
             label="Entreprise"
             onChange={onInputChange}
             value={value.company}
+            error={touched && touched.company &&errors && errors.company &&errors.company}
           />
         </Box>
       </Grid>
       <Grid item md={6} xs={12} sm={12}>
         <Box paddingBottom={2}>
-          <TextInput
+          <FormikDateInput
             fullWidth
             name="begin_date"
             label="Date de debut"
             onChange={onInputChange}
             value={value.begin_date}
+            error={touched && touched.begin_date &&errors && errors.begin_date &&errors.begin_date}
           />
         </Box>
       </Grid>
       <Grid item md={6} xs={12} sm={12}>
         <Box paddingBottom={2}>
-          <TextInput
+          <FormikDateInput
             fullWidth
             name="end_date"
             label="Date de fin"
             onChange={onInputChange}
             value={value.end_date}
+            error={touched && touched.end_date &&errors && errors.end_date &&errors.end_date}
           />
         </Box>
       </Grid>
@@ -86,6 +90,7 @@ export function ExperienceForm(props){
             label="Description de la tâche effectuée"
             onChange={onInputChange}
             value={value.description}
+            error={touched && touched.description &&errors && errors.description &&errors.description}
           />
         </Box>
       </Grid>

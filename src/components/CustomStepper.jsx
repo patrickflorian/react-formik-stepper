@@ -13,7 +13,7 @@ import {
 import { makeStyles, withStyles } from "@material-ui/core/styles";
 import { Field, Form, Formik } from "formik";
 import React, { useState } from "react";
-import { array, mixed, number, object, string } from "yup";
+import { array, date, mixed, number, object, ref, string } from "yup";
 import StepConnector from "@material-ui/core/StepConnector";
 import clsx from "clsx";
 import { Container } from "@material-ui/core";
@@ -32,7 +32,7 @@ import { Suscription } from "./suscription/suscription";
 const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 const useStyles = makeStyles((theme) => ({
   root: {
-    display: "flex",
+    display: "inline-flex",
     flexWrap: "wrap",
     justifyContent: "center",
     "& > *": {
@@ -52,6 +52,9 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: "0 4px 10px 0 rgba(0,0,0,.25)",
     fontSize: 21,
     color: "white",
+  },
+  card: {
+    width: 200,
   },
 }));
 const useColorlibStepIconStyles = makeStyles({
@@ -88,9 +91,8 @@ const useColorlibStepIconStyles = makeStyles({
 export default function CustomStepper() {
   const [isCompany, setIscompany] = useState(false);
   const classes = useStyles();
-  const initialChildren =
-    JSON.parse(localStorage.getItem("experiences")) | [];
-
+  const initialChildren = JSON.parse(localStorage.getItem("experiences")) | [];
+  const regex = /^((\x2B237)?6)([0-9]{8})$/gm;
   return (
     <Card>
       <CardContent>
@@ -109,31 +111,54 @@ export default function CustomStepper() {
           }}
         >
           <FormikStep
-            validationSchema={object({
-              firstName: string()
-                .required("Veuillez renseigner votre nom")
-                .min(2, "veuillez renseigner un nom correct"),
-            })}
+            validationSchema={
+              isCompany
+                ? object({
+                    email: string().email().required(),
+                    phonenumber: string().required(),
+                    companyName: string().required(),
+                    activity: string().required(),
+                  })
+                : object({
+                    firstName: string().required().min(2),
+                    lastName: string().required().min(2),
+                    email: string().email().required(),
+                    phonenumber: string()
+                      .required()
+                      /** validation d'un numero Camerounais */
+                      .matches(
+                        regex,
+                        "ce numero n'est pas valide pour le cameroun"
+                      )
+                      .length(
+                        13,
+                        "ce numero n'est pas valide pour le cameroun"
+                      ),
+                    job: string().required(),
+                  })
+            }
             label="A propos de vous"
           >
-            <div className={clsx([classes.root, "text-center"])}>
-              <Paper
-                elevation={isCompany ? 0 : 3}
-                className={clsx(["col-5", !isCompany && classes.active])}
-                onClick={() => setIscompany(false)}
-              >
-                Je suis un artisan
-              </Paper>
+            <Grid container md={12}>
+              <Grid item md={5} className={clsx([classes.root, "text-center"])}>
+                <Paper
+                  elevation={isCompany ? 0 : 3}
+                  className={clsx([classes.card, !isCompany && classes.active])}
+                  onClick={() => setIscompany(false)}
+                >
+                  Je suis un artisan
+                </Paper>
 
-              <Paper
-                elevation={isCompany ? 3 : 0}
-                className={clsx(["col-5", isCompany && classes.active])}
-                onClick={() => setIscompany(true)}
-              >
-                Je represente une entreprise
-              </Paper>
-            </div>
-            <AboutForm isCompany={isCompany} />
+                <Paper
+                  elevation={isCompany ? 3 : 0}
+                  className={clsx([classes.card, isCompany && classes.active])}
+                  onClick={() => setIscompany(true)}
+                >
+                  Je represente une entreprise
+                </Paper>
+              </Grid>
+              <AboutForm isCompany={isCompany} />
+            </Grid>
           </FormikStep>
           <FormikStep
             label="vos competences"
@@ -147,7 +172,45 @@ export default function CustomStepper() {
             <Competences />
             <Location />
           </FormikStep>
-          <FormikStep label="Votre experience">
+          <FormikStep
+            label="Votre experience"
+            validationSchema={object().shape({
+              experiences: array()
+                .of(
+                  object().shape({
+                    begin_date: date()
+                      .required("quand avez vous comencé?")
+                      .nullable()
+                      .transform((curr, orig) => (orig === "" ? null : curr)),
+                    end_date: date()
+                      .required("quand avez-vous fini? ")
+                      .test(
+                        "compare date Values",
+                        "toi meme tu as fini avant d'avoir commencer yaaaaha",
+                        function (value) {
+                          let beginDateValue = this.resolve(ref("begin_date"));
+                          return beginDateValue < value;
+                        }
+                      )
+                      .nullable()
+                      .transform((curr, orig) => (orig === "" ? null : curr)),
+                    company: string()
+                      .required("pour quelle entreprise travailliez vous? ")
+                      .min(3, "au moins sur 3 caracteres "),
+                    description: string()
+                      .required(
+                        "donnez une description du travail effectué au sein de cette structure"
+                      )
+                      .min(3, "au moins sur 3 caracteres "),
+                    position: string()
+                      .required("veuillez renseigner le poste occupé")
+                      .min(3, "au moins sur 3 caracteres "),
+                  })
+                )
+                .required()
+                .min(1, "Vous devez ajouter au moins une competence"),
+            })}
+          >
             <Box
               paddingBottom={2}
               alignItems={"center"}
@@ -189,7 +252,7 @@ export default function CustomStepper() {
               justifyContent={"center"}
               display={"flex"}
             >
-              <Suscription/>
+              <Suscription />
             </Box>
           </FormikStep>
         </FormikStepper>
@@ -270,10 +333,14 @@ export function FormikStepper({ children, ...props }) {
                 );
               })}
             </Stepper>
-            <Container maxWidth={"sm"} className='mt-5'>
+            <Container maxWidth={"md"} className="mt-5">
               {currentChild}
-
-              <Grid container spacing={2} justifyContent={"center"}>
+              <Grid
+                container
+                spacing={2}
+                justify={"flex-end"}
+                alignContent={"flex-end"}
+              >
                 {step > 0 ? (
                   <Grid item>
                     <Button
@@ -300,8 +367,9 @@ export function FormikStepper({ children, ...props }) {
                     color="primary"
                     type="submit"
                     style={{
-                      backgroundImage:
-                        "linear-gradient(to right, #000046, #1cb5e0)",
+                      backgroundImage: isValid
+                        ? "linear-gradient(to right, #000046, #1cb5e0)"
+                        : "linear-gradient(to right, #e52d27, #b31217)",
                     }}
                   >
                     {isSubmitting

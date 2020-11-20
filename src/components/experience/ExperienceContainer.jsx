@@ -25,7 +25,7 @@ export function ExperienceContainer(props) {
     ]);
   }
   function removeForm(key) {
-    setChildrenArray(childrenArray.splice(key));
+    setChildrenArray(childrenArray.splice(key-1,1));
     Setupdating(true)
   }
 
@@ -54,7 +54,6 @@ export function ExperienceContainer(props) {
     setValues(childrenArray.map((children) => children.value));
   }
   useEffect(() => {
-    console.log(field.value)
     if (updating) {
       save();
     }
@@ -74,6 +73,8 @@ export function ExperienceContainer(props) {
               index={index}
               remove={removeForm}
               onUpdate={saveItemValue}
+              errors={form.errors[field.name]&&form.errors[field.name][index]}
+              touched={form.touched[field.name]&&form.touched[field.name][index]}
             />
           </>
         );
