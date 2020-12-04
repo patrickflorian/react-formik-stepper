@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
   },
   root: {
     border: "solid 1px",
-    width :275,
+    width :190,
     background: "#ccc",
   },
   container : {
@@ -70,7 +70,7 @@ export function SuscriptionPlanComponent(props) {
                   </Typography>
                 </Grid>
                 <Grid item md={12} className={"text-center"}>
-                  <Typography component={"span"} component={"span"}>
+                  <Typography component={"span"} >
                     Plan de petit artisan
                   </Typography>
                 </Grid>
@@ -78,38 +78,38 @@ export function SuscriptionPlanComponent(props) {
             </Box>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Ads Creation</Typography>
-            <Typography component={"span"}>{plan.ads_creation}</Typography>
+            <Typography variant={"caption"}>Ads Creation</Typography>
+            <Typography variant={"caption"}>{plan.ads_creation}</Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Visits Ads</Typography>
-            <Typography component={"span"}>{plan.ads_visit}</Typography>
+            <Typography variant={"caption"}>Visits Ads</Typography>
+            <Typography variant={"caption"}>{plan.ads_visit}</Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Contact the craftsmen</Typography>
-            <Typography component={"span"}>
+            <Typography variant={"caption"}>Contact the craftsmen</Typography>
+            <Typography variant={"caption"}>
               {plan.ads_contact_craftsmen}
             </Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Extension</Typography>
-            <Typography component={"span"}>{plan.extension}</Typography>
+            <Typography variant={"caption"}>Extension</Typography>
+            <Typography variant={"caption"}>{plan.extension}</Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Shop</Typography>
-            <Typography component={"span"}>{plan.shop}</Typography>
+            <Typography variant={"caption"}>Shop</Typography>
+            <Typography variant={"caption"}>{plan.shop}</Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Free Consultations</Typography>
-            <Typography component={"span"}>{plan.free_consultation}</Typography>
+            <Typography variant={"caption"}>Free Consultations</Typography>
+            <Typography variant={"caption"}>{plan.free_consultation}</Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Personal page</Typography>
-            <Typography component={"span"}>{plan.personal_page}</Typography>
+            <Typography variant={"caption"}>Personal page</Typography>
+            <Typography variant={"caption"}>{plan.personal_page}</Typography>
           </Grid>
           <Grid item md={12} className={classes.plan}>
-            <Typography component={"span"}>Technical assistance</Typography>
-            <Typography component={"span"}>
+            <Typography variant={"caption"}>Technical assistance</Typography>
+            <Typography variant={"caption"}>
               {plan.technical_assistance}
             </Typography>
           </Grid>

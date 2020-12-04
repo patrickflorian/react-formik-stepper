@@ -1,0 +1,22 @@
+
+  .fade-enter .msg {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  .fade-enter-active .msg {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  .fade-exit .msg {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  .fade-exit-active .msg {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  .fade-enter-active .msg,
+  .fade-exit-active .msg {
+    transition: opacity 1000ms, transform 1000ms;
+  }
+  

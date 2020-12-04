@@ -53,6 +53,7 @@ const FormikTextInput = (props) => {
     form: { errors, touched ,...rest_f},
     ...rest
   } = props;
+  console.log(rest_f)
   return (
     <>
       <div className="input-group mb-3 col-md-12 col-sm-12">
@@ -72,7 +73,7 @@ const FormikTextInput = (props) => {
   );
 };
 const FormikDateInput = (props) => {
-  const { fullWidth, placeholder, label, value, onChange ,error ,...rest } = props;
+  const { fullWidth, placeholder, label, value, onChange ,error, form ,...rest } = props;
 
   const [inputValue, setValue] = useState("value");
   function handleInputChange(e) {
@@ -112,7 +113,6 @@ const FormikPhoneInput = (props) => {
     form: { errors, touched, setFieldValue , ...restForm},
     ...rest
   } = props;
-console.log(touched);
   return (
     <>
       <div className={clsx(["input-group mb-3 col-md-12 col-sm-12", errors[field.name]?"is-invalid":"is-valid"])}>

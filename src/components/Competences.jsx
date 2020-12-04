@@ -3,13 +3,13 @@ import { Field } from "formik";
 import React, { useState } from "react";
 import TagContainer from "./Tags/TagContainer";
 const customColor = require("randomcolor");
-export function Competences(props) {
-  const [tags, setTags] = useState([
+export function Competences() {
+  const [tags] = useState([
     { id: 0, label: "Informaticien", color: customColor({ hue: "blue" }) },
     { id: 2, label: "Electronique", color: customColor({ hue: "blue" }) },
     { id: 3, label: "Electromenager", color: customColor({ hue: "blue" }) },
   ]);
-  
+
   return (
     <Box
       paddingBottom={2}
@@ -28,7 +28,6 @@ export function Competences(props) {
               label="First Name"
               withInput
               tags={tags}
-              
             />
           </Box>
         </Grid>

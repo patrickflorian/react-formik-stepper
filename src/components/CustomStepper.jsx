@@ -5,14 +5,16 @@ import {
   CardContent,
   CircularProgress,
   Grid,
+  Hidden,
   Paper,
   Step,
   StepLabel,
   Stepper,
+  Typography,
 } from "@material-ui/core";
 import { makeStyles, withStyles } from "@material-ui/core/styles";
 import { Field, Form, Formik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { array, date, mixed, number, object, ref, string } from "yup";
 import StepConnector from "@material-ui/core/StepConnector";
 import clsx from "clsx";
@@ -29,6 +31,9 @@ import { Competences } from "./Competences";
 import { Location } from "./Location";
 import { ExperienceContainer } from "./experience/ExperienceContainer";
 import { Suscription } from "./suscription/suscription";
+import "../styles/style.css";
+import { CSSTransition, SwitchTransition } from "react-transition-group";
+import CompanyForm from "./CompanyForm";
 const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -55,6 +60,14 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     width: 200,
+    display: "flex",
+    justifyContent: "center",
+    "&:hover": {
+      backgroundImage: " linear-gradient(to right, #000046, #1cb5e0)",
+      boxShadow: "0 4px 10px 0 rgba(0,0,0,.25)",
+      fontSize: 21,
+      color: "white",
+    },
   },
 }));
 const useColorlibStepIconStyles = makeStyles({
@@ -62,8 +75,8 @@ const useColorlibStepIconStyles = makeStyles({
     backgroundColor: "#ccc",
     zIndex: 1,
     color: "#fff",
-    width: 50,
-    height: 50,
+    width: 30,
+    height: 30,
     display: "flex",
     borderRadius: "50%",
     justifyContent: "center",
@@ -89,64 +102,47 @@ const useColorlibStepIconStyles = makeStyles({
   },
 });
 export default function CustomStepper() {
-  const [isCompany, setIscompany] = useState(false);
+  const [isCompany, setIscompany] = useState(null);
+  const [currentStep, setStep] = useState(0);
   const classes = useStyles();
   const initialChildren = JSON.parse(localStorage.getItem("experiences")) | [];
   const regex = /^((\x2B237)?6)([0-9]{8})$/gm;
+  useEffect(() => {
+    if (isCompany != null) setStep((s) => s + 1);
+  }, [isCompany, currentStep]);
   return (
-    <Card>
-      <CardContent>
-        <FormikStepper
-          initialValues={{
-            firstName: "",
-            lastName: "",
-            competences: [],
-            location: { country: {}, town: {}, quarter: {} },
-            experiences: JSON.parse(initialChildren),
-            money: 0,
-            description: "",
-          }}
-          onSubmit={async () => {
-            await sleep(3000);
-          }}
-        >
-          <FormikStep
-            validationSchema={
-              isCompany
-                ? object({
-                    email: string().email().required(),
-                    phonenumber: string().required(),
-                    companyName: string().required(),
-                    activity: string().required(),
-                  })
-                : object({
-                    firstName: string().required().min(2),
-                    lastName: string().required().min(2),
-                    email: string().email().required(),
-                    phonenumber: string()
-                      .required()
-                      /** validation d'un numero Camerounais */
-                      .matches(
-                        regex,
-                        "ce numero n'est pas valide pour le cameroun"
-                      )
-                      .length(
-                        13,
-                        "ce numero n'est pas valide pour le cameroun"
-                      ),
-                    job: string().required(),
-                  })
-            }
-            label="A propos de vous"
-          >
+    <FormikStepper
+      initialValues={{
+        firstName: "",
+        lastName: "",
+        competences: [],
+        location: { country: {}, town: {}, quarter: {} },
+        experiences: JSON.parse(initialChildren),
+        money: 0,
+        description: "",
+      }}
+      onSubmit={async () => {
+        await sleep(10);
+      }}
+      currentStep={currentStep}
+      setStep={setStep}
+    >
+      {/* <FormikStep label="A propos de vous">
             <Grid container md={12}>
-              <Grid item md={5} className={clsx([classes.root, "text-center"])}>
+              <Grid
+                item
+                md={12}
+                className={clsx([classes.root, "text-center"])}
+              >
                 <Paper
                   elevation={isCompany ? 0 : 3}
-                  className={clsx([classes.card, !isCompany && classes.active])}
+                  className={clsx([
+                    classes.card,
+                    !isCompany && isCompany !== null && classes.active,
+                  ])}
                   onClick={() => setIscompany(false)}
                 >
-                  Je suis un artisan
+                  Un artisan
                 </Paper>
 
                 <Paper
@@ -154,110 +150,157 @@ export default function CustomStepper() {
                   className={clsx([classes.card, isCompany && classes.active])}
                   onClick={() => setIscompany(true)}
                 >
-                  Je represente une entreprise
+                  Une entreprise
                 </Paper>
               </Grid>
-              <AboutForm isCompany={isCompany} />
             </Grid>
           </FormikStep>
-          <FormikStep
-            label="vos competences"
-            validationSchema={object({
-              competences: array().min(
-                1,
-                "Vous devez ajouter au moins une competence"
-              ),
-            })}
-          >
-            <Competences />
-            <Location />
-          </FormikStep>
-          <FormikStep
-            label="Votre experience"
-            validationSchema={object().shape({
-              experiences: array()
-                .of(
-                  object().shape({
-                    begin_date: date()
-                      .required("quand avez vous comencé?")
-                      .nullable()
-                      .transform((curr, orig) => (orig === "" ? null : curr)),
-                    end_date: date()
-                      .required("quand avez-vous fini? ")
-                      .test(
-                        "compare date Values",
-                        "toi meme tu as fini avant d'avoir commencer yaaaaha",
-                        function (value) {
-                          let beginDateValue = this.resolve(ref("begin_date"));
-                          return beginDateValue < value;
-                        }
-                      )
-                      .nullable()
-                      .transform((curr, orig) => (orig === "" ? null : curr)),
-                    company: string()
-                      .required("pour quelle entreprise travailliez vous? ")
-                      .min(3, "au moins sur 3 caracteres "),
-                    description: string()
-                      .required(
-                        "donnez une description du travail effectué au sein de cette structure"
-                      )
-                      .min(3, "au moins sur 3 caracteres "),
-                    position: string()
-                      .required("veuillez renseigner le poste occupé")
-                      .min(3, "au moins sur 3 caracteres "),
-                  })
-                )
-                .required()
-                .min(1, "Vous devez ajouter au moins une competence"),
-            })}
-          >
-            <Box
-              paddingBottom={2}
-              alignItems={"center"}
-              justifyContent={"center"}
-              display={"flex"}
-            >
-              <Grid container>
-                <Grid item xs={12} sm={12} md={12}>
-                  <Box paddingBottom={2}>
-                    <Field
-                      paddingBottom={2}
-                      name="experiences"
-                      component={ExperienceContainer}
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
-          </FormikStep>
+           */}
+      <FormikStep
+        validationSchema={object({
+          firstName: string().required().min(2),
+          lastName: string().required().min(2),
+          email: string().email().required(),
+          phonenumber: string()
+            .required()
+            // validation d'un numero Camerounais
+            .matches(regex, "ce numero n'est pas valide pour le cameroun")
+            .length(13, "ce numero n'est pas valide pour le cameroun"),
+          job: string().required(),
+        })}
+        onSubmit={async () => {
+          await sleep(10);
+          setStep((s) => s + 1);
+        }}
+      >
+        <AboutForm />
+      </FormikStep>
+      <FormikStep
+        validationSchema={object({
+          competences: array().min(
+            1,
+            "Vous devez ajouter au moins une competence"
+          ),
+        })}
+        onSubmit={async () => {
+          await sleep(10);
+          setStep((s) => s + 1);
+        }}
+      >
+        <Competences />
+      </FormikStep>
+      <FormikStep
+        validationSchema={object({
+          email: string().email().required(),
+          phonenumber: string().required(),
+          companyName: string().required(),
+          activity: string().required(),
+        })}
+        onSubmit={async () => {
+          await sleep(10);
+          setStep((s) => s + 1);
+        }}
+      >
+        <CompanyForm />
+      </FormikStep>
+      <FormikStep
+        onSubmit={async () => {
+          await sleep(10);
+          setStep((s) => s + 1);
+        }}
+      >
+        <Location />
+      </FormikStep>
+      <FormikStep
+        validationSchema={object().shape({
+          experiences: array()
+            .of(
+              object().shape({
+                begin_date: date()
+                  .required("quand avez vous comencé?")
+                  .nullable()
+                  .transform((curr, orig) => (orig === "" ? null : curr)),
+                end_date: date()
+                  .required("quand avez-vous fini? ")
+                  .test(
+                    "compare date Values",
+                    "toi meme tu as fini avant d'avoir commencer yaaaaha",
+                    function (value) {
+                      let beginDateValue = this.resolve(ref("begin_date"));
+                      return beginDateValue < value;
+                    }
+                  )
+                  .nullable()
+                  .transform((curr, orig) => (orig === "" ? null : curr)),
+                company: string()
+                  .required("pour quelle entreprise travailliez vous? ")
+                  .min(3, "au moins sur 3 caracteres "),
+                description: string()
+                  .required(
+                    "donnez une description du travail effectué au sein de cette structure"
+                  )
+                  .min(3, "au moins sur 3 caracteres "),
+                position: string()
+                  .required("veuillez renseigner le poste occupé")
+                  .min(3, "au moins sur 3 caracteres "),
+              })
+            )
+            .required()
+            .min(1, "Vous devez ajouter au moins une competence"),
+        })}
+        onSubmit={async () => {
+          await sleep(10);
+          setStep((s) => s + 1);
+        }}
+      >
+        <Box
+          paddingBottom={2}
+          alignItems={"center"}
+          justifyContent={"center"}
+          display={"flex"}
+        >
+          <Grid container>
+            <Grid item xs={12} sm={12} md={12}>
+              <Box paddingBottom={2}>
+                <Field
+                  paddingBottom={2}
+                  name="experiences"
+                  component={ExperienceContainer}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </FormikStep>
 
-          <FormikStep
-            label="Choisir un abonnement"
-            validationSchema={object({
-              money: mixed().when("millionaire", {
-                is: true,
-                then: number()
-                  .required()
-                  .min(
-                    1_000_000,
-                    "Because you said you are a millionaire you need to have 1 million"
-                  ),
-                otherwise: number().required(),
-              }),
-            })}
-          >
-            <Box
-              paddingBottom={2}
-              alignItems={"center"}
-              justifyContent={"center"}
-              display={"flex"}
-            >
-              <Suscription />
-            </Box>
-          </FormikStep>
-        </FormikStepper>
-      </CardContent>
-    </Card>
+      <FormikStep
+        validationSchema={object({
+          money: mixed().when("millionaire", {
+            is: true,
+            then: number()
+              .required()
+              .min(
+                1_000_000,
+                "Because you said you are a millionaire you need to have 1 million"
+              ),
+            otherwise: number().required(),
+          }),
+        })}
+        onSubmit={async () => {
+          await sleep(10);
+          setStep((s) => s + 1);
+        }}
+      >
+        <Box
+          paddingBottom={2}
+          alignItems={"center"}
+          justifyContent={"center"}
+          display={"flex"}
+        >
+          <Suscription />
+        </Box>
+      </FormikStep>
+    </FormikStepper>
   );
 }
 
@@ -265,16 +308,15 @@ export function FormikStep({ children }) {
   return <>{children}</>;
 }
 
-export function FormikStepper({ children, ...props }) {
+export function FormikStepper({ children, currentStep, setStep, ...props }) {
   const childrenArray = React.Children.toArray(children);
-  const [step, setStep] = useState(0);
+  const step = currentStep | 0;
   const currentChild = childrenArray[step];
   const [completed, setCompleted] = useState(false);
-
+  const [switchState, setSwitch] = useState(false);
   function isLastStep() {
     return step === childrenArray.length - 1;
   }
-
   return (
     <Formik
       {...props}
@@ -284,14 +326,44 @@ export function FormikStepper({ children, ...props }) {
           await props.onSubmit(values, helpers);
           setCompleted(true);
         } else {
-          setStep((s) => s + 1);
+          currentChild.props.onSubmit();
+          //setStep((s) => s + 1);
         }
       }}
     >
-      {({ isSubmitting, isValid }) => {
-        const ColorlibConnector = withStyles({
+      {({ isSubmitting, isValid, submitForm, touched, values }) => {
+        localStorage.setItem("registration_stepper", JSON.stringify(values));
+        const ColorlibConnectorVertical = withStyles({
           alternativeLabel: {
-            top: 22,
+            position: "absolute",
+            top: "calc(-92% + 24px)",
+            position: "absolute",
+            height: "calc(100% - 25px)",
+            left: "auto",
+            right: "auto",
+          },
+          active: {
+            "& $line": {
+              backgroundImage: " linear-gradient(to right,#f7b733, #000046)",
+            },
+          },
+          completed: {
+            "& $line": {
+              backgroundImage: " linear-gradient(to right, #f7b733, #fc4a1a)",
+            },
+          },
+          line: {
+            width: 3,
+            height: "100%",
+            border: 0,
+            backgroundColor: "#eaeaf0",
+            borderRadius: 1,
+          },
+        })(StepConnector);
+
+        const ColorlibConnectoHorizontal = withStyles({
+          alternativeLabel: {
+            //top: 22,
           },
           active: {
             "& $line": {
@@ -310,38 +382,120 @@ export function FormikStepper({ children, ...props }) {
             borderRadius: 1,
           },
         })(StepConnector);
+
+        const Message = StepsMessages[step].Component;
         return (
           <Form autoComplete="off">
-            <Stepper
-              alternativeLabel
-              activeStep={step}
-              connector={<ColorlibConnector />}
-            >
-              {childrenArray.map((child, index) => {
-                return (
-                  <Step
-                    key={child.props.label}
-                    completed={step > index || completed}
-                  >
-                    <StepLabel
-                      StepIconComponent={IconComponent}
-                      error={!isValid && step === index}
-                    >
-                      {child.props.label}
-                    </StepLabel>
-                  </Step>
-                );
-              })}
-            </Stepper>
             <Container maxWidth={"md"} className="mt-5">
-              {currentChild}
+              <Hidden mdUp>
+                <Grid container className="mb-3">
+                  <Grid item md={12} sm={12} xs={12}>
+                    <Stepper
+                      alternativeLabel
+                      activeStep={step}
+                      connector={<ColorlibConnectoHorizontal />}
+                      style={{ height: "100%" }}
+                    >
+                      {childrenArray.map((child, index) => {
+                        return (
+                          <Step
+                            key={child.props.label}
+                            completed={step > index || completed}
+                            onClick={() => step >= index && setStep(index)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <StepLabel
+                              StepIconComponent={IconComponent}
+                              error={!isValid && step === index}
+                              defaultValue={index}
+                            >
+                              {child.props.label}
+                            </StepLabel>
+                          </Step>
+                        );
+                      })}
+                    </Stepper>
+                  </Grid>
+                </Grid>
+              </Hidden>
+              <div className="row justify-content-center">
+                <div className="col-sm-6 col-md-4 mt-4">
+                  <SwitchTransition mode="out-in">
+                    <CSSTransition
+                      key={switchState}
+                      timeout={1000}
+                      addEndListener={(node, done) => {
+                        node.addEventListener("transitionend", done, false);
+                      }}
+                      classNames="fade"
+                    >
+                      <div className="msg">
+                        <Message />
+                      </div>
+                    </CSSTransition>
+                  </SwitchTransition>
+                </div>
+                <Hidden smDown>
+                  <div className="col-md-1 px-0">
+                    <Stepper
+                      alternativeLabel
+                      activeStep={step}
+                      connector={<ColorlibConnectorVertical />}
+                      orientation="vertical"
+                      style={{ height: "500px" }}
+                    >
+                      {childrenArray.map((child, index) => {
+                        return (
+                          <Step
+                            key={child.props.label}
+                            completed={step > index || completed}
+                            onClick={() => step >= index && setStep(index)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <StepLabel
+                              StepIconComponent={IconComponent}
+                              error={!isValid && step === index}
+                              defaultValue={index}
+                            >
+                              {child.props.label}
+                            </StepLabel>
+                          </Step>
+                        );
+                      })}
+                    </Stepper>
+                  </div>
+                </Hidden>
+                <div className="col-sm-6 col-md-5 px-0 mt-4">
+                  <SwitchTransition mode="out-in">
+                    <CSSTransition
+                      key={switchState}
+                      timeout={2000}
+                      addEndListener={(node, done) => {
+                        node.addEventListener("transitionend", done, false);
+                      }}
+                      classNames="fade"
+                    >
+                      <div className="msg">{currentChild}</div>
+                    </CSSTransition>
+                  </SwitchTransition>
+                  <Button
+                    onClick={() => {
+                      setSwitch((s) => !s);
+                      submitForm();
+                    }}
+                  >
+                    ok
+                  </Button>
+                </div>
+              </div>
+
               <Grid
                 container
                 spacing={2}
                 justify={"flex-end"}
                 alignContent={"flex-end"}
               >
-                {step > 0 ? (
+                {/* {step > 0 ? (
                   <Grid item>
                     <Button
                       disabled={isSubmitting}
@@ -357,7 +511,7 @@ export function FormikStepper({ children, ...props }) {
                     </Button>
                   </Grid>
                 ) : null}
-                <Grid item>
+                <Grid item> 
                   <Button
                     startIcon={
                       isSubmitting ? <CircularProgress size="1rem" /> : null
@@ -378,7 +532,7 @@ export function FormikStepper({ children, ...props }) {
                       ? "Submit"
                       : "Next"}
                   </Button>
-                </Grid>
+                </Grid>*/}
               </Grid>
             </Container>
           </Form>
@@ -412,3 +566,98 @@ const IconComponent = (props) => {
     </div>
   );
 };
+
+const StepsMessages = [
+  {
+    Component: () => {
+      return (
+        <>
+          <Typography variant={"h5"}>Hello Artisan !!!!</Typography>
+          <Typography variant={"body1"}>
+            Pour enrichir votre experience sur notre plateforme nous avons
+            besoin que vous renseignez certaines informations concernant votre
+            activité
+          </Typography>
+        </>
+      );
+    },
+  },
+  {
+    Component: () => {
+      return (
+        <>
+          <Typography variant={"h5"} className={"msg"}>
+            Vos competences sont importantes !!!!
+          </Typography>
+          <Typography variant={"body1"} className={"msg"}>
+            Pour benficier de l'assistance complete et specifique a vos
+            activites ainsi que des offres vous correspondant il est important
+            pour nous de connaitre vos competences
+          </Typography>
+        </>
+      );
+    },
+  },
+  {
+    Component: () => {
+      return (
+        <>
+          <Typography variant={"h5"}>Hello Artisan !!!!</Typography>
+          <Typography variant={"body1"}>
+            Pour enrichir votre experience sur notre plateforme nous avons
+            besoin que vous renseignez certaines informations concernant votre
+            activité
+          </Typography>
+        </>
+      );
+    },
+  },
+  {
+    Component: () => {
+      return (
+        <>
+          <Typography variant={"h5"} className={"msg"}>
+            Où se situe votre activité !!!!
+          </Typography>
+          <Typography variant={"body1"} className={"msg"}>
+            Pour benficier de l'assistance complete et specifique a vos
+            activites ainsi que des offres vous correspondant il est important
+            pour nous de connaitre vos competences
+          </Typography>
+        </>
+      );
+    },
+  },
+  {
+    Component: () => {
+      return (
+        <>
+          <Typography variant={"h5"} className={"msg"}>
+            Vos experiences sont importantes !!!!
+          </Typography>
+          <Typography variant={"body1"} className={"msg"}>
+            Pour benficier de l'assistance complete et specifique a vos
+            activites ainsi que des offres vous correspondant il est important
+            pour nous de connaitre vos competences
+          </Typography>
+        </>
+      );
+    },
+  },
+  {
+    Component: () => {
+      return (
+        <>
+          <Typography variant={"h5"} className={"msg"}>
+            Choissisez un plan (facultatif)!!!!
+          </Typography>
+          <Typography variant={"body1"} className={"msg"}>
+            Pour benficier de l'assistance complete et specifique a vos
+            activites ainsi que des offres vous correspondant il est important
+            pour nous de connaitre vos competences
+          </Typography>
+        </>
+      );
+    },
+  },
+];
